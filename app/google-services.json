@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "132041750504",
+    "firebase_url": "https://kotlin-firebase-19142-default-rtdb.firebaseio.com",
+    "project_id": "kotlin-firebase-19142",
+    "storage_bucket": "kotlin-firebase-19142.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132041750504:android:0fd1dafa57bf5237a0965d",
+        "android_client_info": {
+          "package_name": "com.lestrades.firebase_one"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "132041750504-btqrj3ch9uko83lcsh9jb0clq7emhjkq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC14RJcBMyjxFAQdyw9JNmec8y9twA8-xA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "132041750504-btqrj3ch9uko83lcsh9jb0clq7emhjkq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132041750504:android:6ee461bb5b6e2b8ba0965d",
+        "android_client_info": {
+          "package_name": "com.lestrades.firebasevendedores"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "132041750504-btqrj3ch9uko83lcsh9jb0clq7emhjkq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC14RJcBMyjxFAQdyw9JNmec8y9twA8-xA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "132041750504-btqrj3ch9uko83lcsh9jb0clq7emhjkq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
