@@ -2,6 +2,8 @@ package com.lestrades.firebasevendedores
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import com.firebase.ui.auth.AuthUI
@@ -13,7 +15,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var authStateListener: FirebaseAuth.AuthStateListener
+    private val resultLauncher=registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        val response = IdpResponse.fromResultIntent(it.data)
 
+        if (it.resultCode == RESULT_OK) {
+            val user = FirebaseAuth.getInstance().currentUser
+            if (user != null) {
+                Toast.makeText(this, "Bienvenido", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -29,16 +40,7 @@ class MainActivity : AppCompatActivity() {
             }else{
                 val providers = arrayListOf(AuthUI.IdpConfig.EmailBuilder().build())
 
-                registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                    val response = IdpResponse.fromResultIntent(it.data)
-
-                    if (it.resultCode == RESULT_OK) {
-                        val user = FirebaseAuth.getInstance().currentUser
-                        if (user != null) {
-                            Toast.makeText(this, "Bienvenido", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }.launch(
+                resultLauncher.launch(
                     AuthUI.getInstance()
                         .createSignInIntentBuilder()
                         .setAvailableProviders(providers)
@@ -56,5 +58,22 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         firebaseAuth.removeAuthStateListener (authStateListener)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.action_sing_out ->{
+                AuthUI.getInstance().signOut(this)
+                    .addOnSuccessListener {
+                        Toast.makeText(this,"Sesión terminada.",Toast.LENGTH_LONG).show()
+                    }
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 }
