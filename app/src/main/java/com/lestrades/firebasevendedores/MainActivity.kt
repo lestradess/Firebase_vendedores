@@ -27,10 +27,10 @@ class MainActivity : AppCompatActivity() {
                 if (user != null) {
                     Toast.makeText(this, "Bienvenido", Toast.LENGTH_LONG).show()
                 }
-            }else{
+            } else {
                 //Con esto se manda respuesta en caso de que se pulse hacia atras y finaliza la app
-                if (response == null){
-                    Toast.makeText(this, "Hasta pronto",Toast.LENGTH_LONG).show()
+                if (response == null) {
+                    Toast.makeText(this, "Hasta pronto", Toast.LENGTH_LONG).show()
                     finish()
                 }
             }
@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding =ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         configAuth()
@@ -51,7 +51,10 @@ class MainActivity : AppCompatActivity() {
                 supportActionBar?.title = it.currentUser?.displayName
                 binding.tvInit.visibility = View.VISIBLE
             } else {
-                val providers = arrayListOf(AuthUI.IdpConfig.EmailBuilder().build())
+                val providers = arrayListOf(
+                    AuthUI.IdpConfig.EmailBuilder().build(),
+                    AuthUI.IdpConfig.GoogleBuilder().build()
+                )
 
                 resultLauncher.launch(
                     AuthUI.getInstance()
@@ -86,10 +89,11 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this, "Sesión terminada.", Toast.LENGTH_LONG).show()
                     }
                     .addOnCompleteListener {
-                        if (it.isSuccessful){
+                        if (it.isSuccessful) {
                             binding.tvInit.visibility = View.GONE
-                        }else{
-                            Toast.makeText(this,"No se pudo cerrar la sesión",Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(this, "No se pudo cerrar la sesión", Toast.LENGTH_LONG)
+                                .show()
                         }
                     }
             }
