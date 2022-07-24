@@ -7,4 +7,17 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="colorPrimary">@color/Yellow</color>
+    <color name="colorSecundary">@color/Marron_Dark</color>
+
+    <color name="Marron">#4e342e</color>
+    <color name="Marron_Light">#7c5e56</color>
+    <color name="Marron_Dark">#260e02</color>
+
+    <color name="Yellow">#fbc02d</color>
+    <color name="Yellow_Dark">#c49000</color>
+    <color name="gray_100">#f5f5f5</color>
+
+
 </resources>
