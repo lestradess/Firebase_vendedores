@@ -12,7 +12,9 @@ import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.ErrorCodes
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.toObject
 
 
@@ -26,6 +28,7 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var authStateListener: FirebaseAuth.AuthStateListener
     private lateinit var adapter: ProductAdapter
+    private lateinit var firestoreListener : ListenerRegistration
 
     private val resultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -62,7 +65,8 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
 
         configAuth()
         configRecyclerView()
-        configFirestore()
+        //configFirestore() //Carga el listado pero solo una vez, no actualiza
+        configFirestoreRealtime()
         configButtons()
     }
 
@@ -164,6 +168,27 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
                 Toast.makeText(this, "Error al consultar datos.", Toast.LENGTH_LONG)
                     .show()
             }
+    }
+    private fun configFirestoreRealtime(){
+        val db = FirebaseFirestore.getInstance()
+        val productRef = db.collection("products")
+
+        firestoreListener = productRef.addSnapshotListener { values, error ->
+            if (error != null){
+                Toast.makeText(this,"Error al consultar datos.", Toast.LENGTH_LONG).show()
+                return@addSnapshotListener
+            }
+            for(value in values!!.documentChanges){
+                val product = value.document.toObject(Product::class.java)
+                product.id = value.document.id
+                when (value.type){
+                    DocumentChange.Type.ADDED -> adapter.add(product)
+                    DocumentChange.Type.MODIFIED -> adapter.update(product)
+                    DocumentChange.Type.REMOVED -> adapter.delete(product)
+                }
+            }
+
+        }
     }
     private fun configButtons(){
         binding.efab.setOnClickListener {
