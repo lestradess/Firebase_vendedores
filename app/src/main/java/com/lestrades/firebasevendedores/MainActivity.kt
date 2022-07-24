@@ -154,8 +154,9 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
         db.collection("products")
             .get()
             .addOnSuccessListener {
-                for (documento in it){
-                    val product = documento.toObject(Product::class.java)
+                for (document in it){
+                    val product = document.toObject(Product::class.java)
+                    product.id = document.id
                     adapter.add(product)
                 }
             }

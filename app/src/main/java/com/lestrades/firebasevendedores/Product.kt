@@ -1,7 +1,9 @@
 package com.lestrades.firebasevendedores
 
+import com.google.firebase.firestore.Exclude
+
 data class Product(
-    var id: String? = null,
+    @get:Exclude var id: String? = null,
     var name: String? = null,
     var description: String?= null,
     var imgUrl: String?= null,
