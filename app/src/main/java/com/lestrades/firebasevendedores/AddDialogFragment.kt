@@ -16,6 +16,7 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
 
     private var positiveButton: Button? = null
     private var negativeButton: Button? = null
+    private var product: Product? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         activity?.let { activity ->
@@ -36,6 +37,8 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
     }
 
     override fun onShow(dialogInterface: DialogInterface?) {
+        initProduct()
+
         val dialog = dialog as? AlertDialog
         dialog?.let {
             positiveButton = it.getButton(Dialog.BUTTON_POSITIVE)
@@ -49,13 +52,22 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
                         quantity = it.etQuantity.text.toString().toInt(),
                         price = it.etPrice.text.toString().toDouble()
                     )
-
                     save(product)
                 }
-
             }
             negativeButton?.setOnClickListener {
                 dismiss()
+            }
+        }
+    }
+    private fun initProduct(){
+        product = (activity as? MainAux)?.getProductSelected()
+        product?.let { product ->
+            binding?.let{
+                it.etName.setText(product.name)
+                it.etDescription.setText(product.description)
+                it.etQuantity.setText(product.quantity.toString())
+                it.etPrice.setText(product.price.toString())
             }
         }
     }
@@ -65,10 +77,10 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
         db.collection("products")
             .add(product)
             .addOnSuccessListener {
-                Toast.makeText(activity,"Producto añadido",Toast.LENGTH_LONG).show()
+                Toast.makeText(activity, "Producto añadido", Toast.LENGTH_LONG).show()
             }
             .addOnFailureListener {
-                Toast.makeText(activity,"Error al insertar.",Toast.LENGTH_LONG).show()
+                Toast.makeText(activity, "Error al insertar.", Toast.LENGTH_LONG).show()
             }
             .addOnCompleteListener {
                 dismiss()

@@ -21,14 +21,14 @@ import com.google.firebase.firestore.ktx.toObject
 import com.lestrades.firebasevendedores.databinding.ActivityMainBinding
 
 
-
-class MainActivity : AppCompatActivity(), OnProductLisener {
+class MainActivity : AppCompatActivity(), OnProductLisener, MainAux {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var authStateListener: FirebaseAuth.AuthStateListener
     private lateinit var adapter: ProductAdapter
-    private lateinit var firestoreListener : ListenerRegistration
+    private lateinit var firestoreListener: ListenerRegistration
+    private var productSelect: Product? = null
 
     private val resultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -155,12 +155,12 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun configFirestore(){
+    private fun configFirestore() {
         val db = FirebaseFirestore.getInstance()
         db.collection("products")
             .get()
             .addOnSuccessListener {
-                for (document in it){
+                for (document in it) {
                     val product = document.toObject(Product::class.java)
                     product.id = document.id
                     adapter.add(product)
@@ -171,19 +171,20 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
                     .show()
             }
     }
-    private fun configFirestoreRealtime(){
+
+    private fun configFirestoreRealtime() {
         val db = FirebaseFirestore.getInstance()
         val productRef = db.collection("products")
 
         firestoreListener = productRef.addSnapshotListener { values, error ->
-            if (error != null){
-                Toast.makeText(this,"Error al consultar datos.", Toast.LENGTH_LONG).show()
+            if (error != null) {
+                Toast.makeText(this, "Error al consultar datos.", Toast.LENGTH_LONG).show()
                 return@addSnapshotListener
             }
-            for(value in values!!.documentChanges){
+            for (value in values!!.documentChanges) {
                 val product = value.document.toObject(Product::class.java)
                 product.id = value.document.id
-                when (value.type){
+                when (value.type) {
                     DocumentChange.Type.ADDED -> adapter.add(product)
                     DocumentChange.Type.MODIFIED -> adapter.update(product)
                     DocumentChange.Type.REMOVED -> adapter.delete(product)
@@ -192,25 +193,36 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
 
         }
     }
-    private fun configButtons(){
+
+    private fun configButtons() {
         binding.efab.setOnClickListener {
-            AddDialogFragment().show(supportFragmentManager,AddDialogFragment::class.java.simpleName)
+            productSelect = null
+            AddDialogFragment().show(
+                supportFragmentManager,
+                AddDialogFragment::class.java.simpleName
+            )
         }
     }
+
     override fun onClick(product: Product) {
-        TODO("Not yet implemented")
+        productSelect = product
+        AddDialogFragment().show(
+            supportFragmentManager,
+            AddDialogFragment::class.java.simpleName
+        )
     }
 
     override fun onLongClick(product: Product) {
         val db = FirebaseFirestore.getInstance()
         val productRef = db.collection("products")
-        product.id?.let{
+        product.id?.let {
             productRef.document(it)
                 .delete()
                 .addOnFailureListener {
-                    Toast.makeText(this, "Error al eliminar el producto.",Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Error al eliminar el producto.", Toast.LENGTH_LONG).show()
                 }
         }
-
     }
+    override fun getProductSelected(): Product? = productSelect
 }
+
