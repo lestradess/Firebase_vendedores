@@ -41,6 +41,7 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
 
         val dialog = dialog as? AlertDialog
         dialog?.let {
+            enableUI(false)
             positiveButton = it.getButton(Dialog.BUTTON_POSITIVE)
             negativeButton = it.getButton(Dialog.BUTTON_NEGATIVE)
 
@@ -96,6 +97,7 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
                 Toast.makeText(activity, "Error al insertar.", Toast.LENGTH_LONG).show()
             }
             .addOnCompleteListener {
+                enableUI(true)
                 dismiss()
             }
     }
@@ -113,10 +115,23 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
                     Toast.makeText(activity, "Error al actualizar.", Toast.LENGTH_LONG).show()
                 }
                 .addOnCompleteListener {
+                    enableUI(true)
                     dismiss()
                 }
         }
+    }
 
+    private fun enableUI(enable:Boolean){
+        positiveButton?.isEnabled = enable
+        negativeButton?.isEnabled = enable
+        binding?.let {
+            with(it){
+                etName.isEnabled = enable
+                etPrice.isEnabled = enable
+                etQuantity.isEnabled = enable
+                etDescription.isEnabled = enable
+            }
+        }
     }
 
     override fun onDestroyView() {
