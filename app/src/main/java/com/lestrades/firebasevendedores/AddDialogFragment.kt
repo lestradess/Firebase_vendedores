@@ -46,13 +46,25 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
 
             positiveButton?.setOnClickListener {
                 binding?.let {
-                    val product = Product(
-                        name = it.etName.text.toString().trim(),
-                        description = it.etDescription.text.toString().trim(),
-                        quantity = it.etQuantity.text.toString().toInt(),
-                        price = it.etPrice.text.toString().toDouble()
-                    )
-                    save(product)
+
+                    if (product == null) {
+                        val product = Product(
+                            name = it.etName.text.toString().trim(),
+                            description = it.etDescription.text.toString().trim(),
+                            quantity = it.etQuantity.text.toString().toInt(),
+                            price = it.etPrice.text.toString().toDouble()
+                        )
+                        save(product)
+                    } else {
+                        product?.apply {
+                            name = it.etName.text.toString().trim()
+                            description = it.etDescription.text.toString().trim()
+                            quantity = it.etQuantity.text.toString().toInt()
+                            price = it.etPrice.text.toString().toDouble()
+
+                            update(this)
+                        }
+                    }
                 }
             }
             negativeButton?.setOnClickListener {
@@ -60,10 +72,11 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
             }
         }
     }
-    private fun initProduct(){
+
+    private fun initProduct() {
         product = (activity as? MainAux)?.getProductSelected()
         product?.let { product ->
-            binding?.let{
+            binding?.let {
                 it.etName.setText(product.name)
                 it.etDescription.setText(product.description)
                 it.etQuantity.setText(product.quantity.toString())
@@ -74,7 +87,7 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
 
     private fun save(product: Product) {
         val db = FirebaseFirestore.getInstance()
-        db.collection("products")
+        db.collection(Constants.COLL_PRODUCTS)
             .add(product)
             .addOnSuccessListener {
                 Toast.makeText(activity, "Producto añadido", Toast.LENGTH_LONG).show()
@@ -85,6 +98,25 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
             .addOnCompleteListener {
                 dismiss()
             }
+    }
+
+    private fun update(product: Product) {
+        val db = FirebaseFirestore.getInstance()
+        product.id?.let { id->
+            db.collection(Constants.COLL_PRODUCTS)
+                .document(id)
+                .set(product)
+                .addOnSuccessListener {
+                    Toast.makeText(activity, "Producto actualizado", Toast.LENGTH_LONG).show()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(activity, "Error al actualizar.", Toast.LENGTH_LONG).show()
+                }
+                .addOnCompleteListener {
+                    dismiss()
+                }
+        }
+
     }
 
     override fun onDestroyView() {

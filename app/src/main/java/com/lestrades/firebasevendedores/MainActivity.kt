@@ -157,7 +157,7 @@ class MainActivity : AppCompatActivity(), OnProductLisener, MainAux {
 
     private fun configFirestore() {
         val db = FirebaseFirestore.getInstance()
-        db.collection("products")
+        db.collection(Constants.COLL_PRODUCTS)
             .get()
             .addOnSuccessListener {
                 for (document in it) {
@@ -174,7 +174,7 @@ class MainActivity : AppCompatActivity(), OnProductLisener, MainAux {
 
     private fun configFirestoreRealtime() {
         val db = FirebaseFirestore.getInstance()
-        val productRef = db.collection("products")
+        val productRef = db.collection(Constants.COLL_PRODUCTS)
 
         firestoreListener = productRef.addSnapshotListener { values, error ->
             if (error != null) {
@@ -214,7 +214,7 @@ class MainActivity : AppCompatActivity(), OnProductLisener, MainAux {
 
     override fun onLongClick(product: Product) {
         val db = FirebaseFirestore.getInstance()
-        val productRef = db.collection("products")
+        val productRef = db.collection(Constants.COLL_PRODUCTS)
         product.id?.let {
             productRef.document(it)
                 .delete()
