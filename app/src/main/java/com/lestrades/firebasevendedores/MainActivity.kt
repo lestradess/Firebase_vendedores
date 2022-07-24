@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.GridLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.GridLayoutManager
@@ -13,8 +12,12 @@ import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.ErrorCodes
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObject
+
+
 import com.lestrades.firebasevendedores.databinding.ActivityMainBinding
-import java.lang.Error
+
 
 
 class MainActivity : AppCompatActivity(), OnProductLisener {
@@ -38,10 +41,14 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
                 if (response == null) {
                     Toast.makeText(this, "Hasta pronto", Toast.LENGTH_LONG).show()
                     finish()
-                }else{
-                    response.error?.let{
-                        if(it.errorCode == ErrorCodes.NO_NETWORK){
-                            Toast.makeText(this,"Código de error : ${it.errorCode}",Toast.LENGTH_LONG).show()
+                } else {
+                    response.error?.let {
+                        if (it.errorCode == ErrorCodes.NO_NETWORK) {
+                            Toast.makeText(
+                                this,
+                                "Código de error : ${it.errorCode}",
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     }
                 }
@@ -55,8 +62,8 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
 
         configAuth()
         configRecyclerView()
+        configFirestore()
     }
-
 
 
     private fun configAuth() {
@@ -94,19 +101,23 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
     }
 
     private fun configRecyclerView() {
-        adapter = ProductAdapter(mutableListOf(),this)
+        adapter = ProductAdapter(mutableListOf(), this)
         binding.recyclerView.apply {
-            layoutManager = GridLayoutManager(this@MainActivity,
+            layoutManager = GridLayoutManager(
+                this@MainActivity,
                 3,
-                GridLayoutManager.HORIZONTAL,false)
+                GridLayoutManager.HORIZONTAL, false
+            )
             adapter = this@MainActivity.adapter
         }
-        (1..20).forEach {
-            val product = Product(it.toString(),"Producto $it",
-            "Este producto es el $it","",
-            it,it * 1.1)
-            adapter.add(product)
-        }
+//        (1..20).forEach {
+//            val product = Product(
+//                it.toString(), "Producto $it",
+//                "Este producto es el $it", "",
+//                it, it * 1.1
+//            )
+//            adapter.add(product)
+//        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -135,6 +146,21 @@ class MainActivity : AppCompatActivity(), OnProductLisener {
         return super.onOptionsItemSelected(item)
     }
 
+    private fun configFirestore(){
+        val db = FirebaseFirestore.getInstance()
+        db.collection("products")
+            .get()
+            .addOnSuccessListener {
+                for (documento in it){
+                    val product = documento.toObject(Product::class.java)
+                    adapter.add(product)
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Error al consultar datos.", Toast.LENGTH_LONG)
+                    .show()
+            }
+    }
     override fun onClick(product: Product) {
         TODO("Not yet implemented")
     }
