@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -72,7 +73,7 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
             positiveButton?.setOnClickListener {
                 binding?.let {
                     enableUI(false)
-                    uploadImage() { eventPost ->
+                    uploadImage(product?.id) { eventPost ->
                         if (eventPost.isSuccess) {
                             if (product == null) {
                                 val product = Product(
@@ -87,6 +88,7 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
                                 product?.apply {
                                     name = it.etName.text.toString().trim()
                                     description = it.etDescription.text.toString().trim()
+                                    imgUrl = eventPost.photoUrl
                                     quantity = it.etQuantity.text.toString().toInt()
                                     price = it.etPrice.text.toString().toDouble()
                                     update(this)
@@ -132,16 +134,26 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
         resultLauncher.launch(intent)
     }
 
-    private fun uploadImage(callback: (EventPost) -> Unit) {
+    private fun uploadImage(productId: String?,callback: (EventPost) -> Unit) {
         val eventPost = EventPost()
-        eventPost.documentId = FirebaseFirestore.getInstance().collection(Constants.COLL_PRODUCTS)
+        //Recuerda operador Elvis
+        eventPost.documentId = productId ?: FirebaseFirestore.getInstance()
+            .collection(Constants.COLL_PRODUCTS)
             .document().id
         val storageRef = FirebaseStorage.getInstance().reference.child(Constants.PATH_PRODUCT_IMAGE)
 
         photoSelectedUri?.let { uri ->
             binding?.let { binding ->
+                binding.progressBar.visibility = View.VISIBLE
                 val photoRef = storageRef.child(eventPost.documentId!!)
                 photoRef.putFile(uri)
+                    .addOnProgressListener {
+                        val progress = (100 *it.bytesTransferred/it.totalByteCount).toInt()
+                        it.run{
+                            binding.progressBar.progress = progress
+                            binding.tvProgress.text = String.format("%s%%",progress)
+                        }
+                    }
                     .addOnSuccessListener {
                         it.storage.downloadUrl.addOnSuccessListener { downLoadUrl ->
                             Log.i("URL", downLoadUrl.toString())
@@ -172,6 +184,7 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
             }
             .addOnCompleteListener {
                 enableUI(true)
+                binding?.progressBar?.visibility = View.INVISIBLE
                 dismiss()
             }
     }
@@ -190,6 +203,7 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
                 }
                 .addOnCompleteListener {
                     enableUI(true)
+                    binding?.progressBar?.visibility = View.INVISIBLE
                     dismiss()
                 }
         }

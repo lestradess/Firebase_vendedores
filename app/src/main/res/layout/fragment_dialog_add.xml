@@ -110,5 +110,25 @@
         app:layout_constraintTop_toTopOf="@id/imgProductPreview"
         app:layout_constraintBottom_toBottomOf="@id/imgProductPreview"
         />
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:progress="75"
+        app:layout_constraintStart_toStartOf="@id/tilPrice"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/imgProductPreview"/>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvProgress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/common_padding_min"
+        tools:text="Subiendo...75%"
+        app:layout_constraintStart_toStartOf="@id/progressBar"
+        app:layout_constraintEnd_toEndOf="@id/progressBar"
+        app:layout_constraintTop_toBottomOf="@id/progressBar"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
