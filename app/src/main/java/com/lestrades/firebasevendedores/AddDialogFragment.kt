@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.lestrades.firebasevendedores.databinding.FragmentDialogAddBinding
@@ -24,13 +25,14 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
     private var positiveButton: Button? = null
     private var negativeButton: Button? = null
     private var product: Product? = null
-    private var photoSelectedUri : Uri? = null
-    private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
-        if (it.resultCode == Activity.RESULT_OK){
-            photoSelectedUri = it.data?.data
-            binding?.imgProductPreview?.setImageURI(photoSelectedUri)
+    private var photoSelectedUri: Uri? = null
+    private val resultLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                photoSelectedUri = it.data?.data
+                binding?.imgProductPreview?.setImageURI(photoSelectedUri)
+            }
         }
-    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         activity?.let { activity ->
@@ -62,22 +64,26 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
             positiveButton?.setOnClickListener {
                 binding?.let {
                     enableUI(false)
-                    uploadImage()
-                    if (product == null) {
-                        val product = Product(
-                            name = it.etName.text.toString().trim(),
-                            description = it.etDescription.text.toString().trim(),
-                            quantity = it.etQuantity.text.toString().toInt(),
-                            price = it.etPrice.text.toString().toDouble()
-                        )
-                        save(product)
-                    } else {
-                        product?.apply {
-                            name = it.etName.text.toString().trim()
-                            description = it.etDescription.text.toString().trim()
-                            quantity = it.etQuantity.text.toString().toInt()
-                            price = it.etPrice.text.toString().toDouble()
-                            update(this)
+                    uploadImage() { eventPost ->
+                        if (eventPost.isSuccess) {
+                            if (product == null) {
+                                val product = Product(
+                                    name = it.etName.text.toString().trim(),
+                                    imgUrl = eventPost.photoUrl,
+                                    description = it.etDescription.text.toString().trim(),
+                                    quantity = it.etQuantity.text.toString().toInt(),
+                                    price = it.etPrice.text.toString().toDouble()
+                                )
+                                save(product, eventPost.documentId.toString())
+                            } else {
+                                product?.apply {
+                                    name = it.etName.text.toString().trim()
+                                    description = it.etDescription.text.toString().trim()
+                                    quantity = it.etQuantity.text.toString().toInt()
+                                    price = it.etPrice.text.toString().toDouble()
+                                    update(this)
+                                }
+                            }
                         }
                     }
                 }
@@ -100,40 +106,51 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
         }
     }
 
-    private fun configButtons(){
+    private fun configButtons() {
         binding?.let {
             it.ibProduct.setOnClickListener {
                 openGalery()
             }
         }
     }
-    private fun openGalery(){
-        val intent = Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+
+    private fun openGalery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         resultLauncher.launch(intent)
     }
-    private fun uploadImage(){
+
+    private fun uploadImage(callback: (EventPost) -> Unit) {
         val eventPost = EventPost()
         eventPost.documentId = FirebaseFirestore.getInstance().collection(Constants.COLL_PRODUCTS)
             .document().id
         val storageRef = FirebaseStorage.getInstance().reference.child(Constants.PATH_PRODUCT_IMAGE)
 
-        photoSelectedUri?.let{ uri->
-            binding?.let{ binding ->
+        photoSelectedUri?.let { uri ->
+            binding?.let { binding ->
                 val photoRef = storageRef.child(eventPost.documentId!!)
                 photoRef.putFile(uri)
                     .addOnSuccessListener {
-                        it.storage.downloadUrl.addOnSuccessListener {
-                            Log.i("URL",it.toString())
+                        it.storage.downloadUrl.addOnSuccessListener { downLoadUrl ->
+                            Log.i("URL", downLoadUrl.toString())
+                            eventPost.isSuccess = true
+                            eventPost.photoUrl = downLoadUrl.toString()
+                            callback(eventPost)
                         }
+                    }
+                    .addOnFailureListener {
+                        eventPost.isSuccess = false
+                        callback(eventPost)
                     }
             }
         }
     }
 
-    private fun save(product: Product) {
+    private fun save(product: Product, documentId: String) {
         val db = FirebaseFirestore.getInstance()
         db.collection(Constants.COLL_PRODUCTS)
-            .add(product)
+            //.add(product)
+            .document(documentId)
+            .set(product)
             .addOnSuccessListener {
                 Toast.makeText(activity, "Producto añadido", Toast.LENGTH_LONG).show()
             }
@@ -148,7 +165,7 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
 
     private fun update(product: Product) {
         val db = FirebaseFirestore.getInstance()
-        product.id?.let { id->
+        product.id?.let { id ->
             db.collection(Constants.COLL_PRODUCTS)
                 .document(id)
                 .set(product)
@@ -165,11 +182,11 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
         }
     }
 
-    private fun enableUI(enable:Boolean){
+    private fun enableUI(enable: Boolean) {
         positiveButton?.isEnabled = enable
         negativeButton?.isEnabled = enable
         binding?.let {
-            with(it){
+            with(it) {
                 etName.isEnabled = enable
                 etPrice.isEnabled = enable
                 etQuantity.isEnabled = enable
