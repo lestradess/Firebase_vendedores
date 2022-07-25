@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.lestrades.firebasevendedores.databinding.ItemProductBinding
 
 class ProductAdapter(
@@ -28,6 +30,11 @@ class ProductAdapter(
         holder.binding.tvName.text = product.name
         holder.binding.tvPrice.text = product.price.toString()
         holder.binding.tvQuantity.text = product.price.toString()
+        Glide.with(context)
+            .load(product.imgUrl)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .circleCrop()
+            .into(holder.binding.imgProduct)
     }
 
     override fun getItemCount(): Int = productList.size

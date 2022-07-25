@@ -3,6 +3,8 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     //Pluggin firebase
     id 'com.google.gms.google-services'
+    //Pluggin Glide
+    id 'kotlin-kapt'
 }
 android {
     compileSdk 32
@@ -47,6 +49,10 @@ dependencies {
     //implementation 'com.google.firebase:firebase-database-ktx'
 
     //implementation 'com.google.firebase:firebase-common-ktx:20.1.1'
+
+    //Glide
+    implementation 'com.github.bumptech.glide:glide:4.13.2'
+    kapt 'com.github.bumptech.glide:compiler:4.13.2'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
