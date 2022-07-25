@@ -112,11 +112,15 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
         resultLauncher.launch(intent)
     }
     private fun uploadImage(){
-        val storageRef = FirebaseStorage.getInstance().reference.child("image")
+        val eventPost = EventPost()
+        eventPost.documentId = FirebaseFirestore.getInstance().collection(Constants.COLL_PRODUCTS)
+            .document().id
+        val storageRef = FirebaseStorage.getInstance().reference.child(Constants.PATH_PRODUCT_IMAGE)
 
         photoSelectedUri?.let{ uri->
             binding?.let{ binding ->
-                storageRef.putFile(uri)
+                val photoRef = storageRef.child(eventPost.documentId!!)
+                photoRef.putFile(uri)
                     .addOnSuccessListener {
                         it.storage.downloadUrl.addOnSuccessListener {
                             Log.i("URL",it.toString())
