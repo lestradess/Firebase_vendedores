@@ -1,14 +1,21 @@
 package com.lestrades.firebasevendedores
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.DialogInterface
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import com.lestrades.firebasevendedores.databinding.FragmentDialogAddBinding
 
 class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
@@ -17,6 +24,13 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
     private var positiveButton: Button? = null
     private var negativeButton: Button? = null
     private var product: Product? = null
+    private var photoSelectedUri : Uri? = null
+    private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+        if (it.resultCode == Activity.RESULT_OK){
+            photoSelectedUri = it.data?.data
+            binding?.imgProductPreview?.setImageURI(photoSelectedUri)
+        }
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         activity?.let { activity ->
@@ -29,7 +43,6 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
                     .setView(it.root)
                 val dialog = builder.create()
                 dialog.setOnShowListener(this)
-
                 return dialog
             }
         }
@@ -38,16 +51,18 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
 
     override fun onShow(dialogInterface: DialogInterface?) {
         initProduct()
+        configButtons()
 
         val dialog = dialog as? AlertDialog
         dialog?.let {
-            enableUI(false)
+
             positiveButton = it.getButton(Dialog.BUTTON_POSITIVE)
             negativeButton = it.getButton(Dialog.BUTTON_NEGATIVE)
 
             positiveButton?.setOnClickListener {
                 binding?.let {
-
+                    enableUI(false)
+                    uploadImage()
                     if (product == null) {
                         val product = Product(
                             name = it.etName.text.toString().trim(),
@@ -62,7 +77,6 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
                             description = it.etDescription.text.toString().trim()
                             quantity = it.etQuantity.text.toString().toInt()
                             price = it.etPrice.text.toString().toDouble()
-
                             update(this)
                         }
                     }
@@ -82,6 +96,32 @@ class AddDialogFragment : DialogFragment(), DialogInterface.OnShowListener {
                 it.etDescription.setText(product.description)
                 it.etQuantity.setText(product.quantity.toString())
                 it.etPrice.setText(product.price.toString())
+            }
+        }
+    }
+
+    private fun configButtons(){
+        binding?.let {
+            it.ibProduct.setOnClickListener {
+                openGalery()
+            }
+        }
+    }
+    private fun openGalery(){
+        val intent = Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        resultLauncher.launch(intent)
+    }
+    private fun uploadImage(){
+        val storageRef = FirebaseStorage.getInstance().reference.child("image")
+
+        photoSelectedUri?.let{ uri->
+            binding?.let{ binding ->
+                storageRef.putFile(uri)
+                    .addOnSuccessListener {
+                        it.storage.downloadUrl.addOnSuccessListener {
+                            Log.i("URL",it.toString())
+                        }
+                    }
             }
         }
     }
